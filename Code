@@ -1,0 +1,85 @@
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table } from "@/components/ui/table";
+
+export default function Dashboard() {
+  const [voyages, setVoyages] = useState(() => {
+    const savedData = localStorage.getItem("voyages");
+    return savedData ? JSON.parse(savedData) : [];
+  });
+  const [form, setForm] = useState({ date: "", destination: "", revenu: "", carburant: "", autresDepenses: "" });
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const ajouterVoyage = () => {
+    const newVoyages = [...voyages, { ...form, id: voyages.length + 1 }];
+    setVoyages(newVoyages);
+    localStorage.setItem("voyages", JSON.stringify(newVoyages));
+    setForm({ date: "", destination: "", revenu: "", carburant: "", autresDepenses: "" });
+  };
+
+  const totalRevenus = voyages.reduce((acc, v) => acc + Number(v.revenu), 0);
+  const totalDépenses = voyages.reduce((acc, v) => acc + Number(v.carburant) + Number(v.autresDepenses), 0);
+  const beneficeNet = totalRevenus - totalDépenses;
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Gestion du Camion Benne</h1>
+
+      <Card className="mb-4">
+        <CardContent>
+          <h2 className="text-lg font-semibold mb-2">Ajouter un Voyage</h2>
+          <div className="grid grid-cols-2 gap-2">
+            <Input name="date" placeholder="Date" value={form.date} onChange={handleChange} />
+            <Input name="destination" placeholder="Destination" value={form.destination} onChange={handleChange} />
+            <Input name="revenu" placeholder="Revenu (GNF)" value={form.revenu} onChange={handleChange} />
+            <Input name="carburant" placeholder="Carburant (GNF)" value={form.carburant} onChange={handleChange} />
+            <Input name="autresDepenses" placeholder="Autres Dépenses (GNF)" value={form.autresDepenses} onChange={handleChange} />
+          </div>
+          <Button className="mt-4" onClick={ajouterVoyage}>Ajouter</Button>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-4">
+        <CardContent>
+          <h2 className="text-lg font-semibold mb-2">Voyages enregistrés</h2>
+          <Table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Destination</th>
+                <th>Revenu</th>
+                <th>Carburant</th>
+                <th>Autres Dépenses</th>
+              </tr>
+            </thead>
+            <tbody>
+              {voyages.map((v) => (
+                <tr key={v.id}>
+                  <td>{v.date}</td>
+                  <td>{v.destination}</td>
+                  <td>{v.revenu} GNF</td>
+                  <td>{v.carburant} GNF</td>
+                  <td>{v.autresDepenses} GNF</td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <h2 className="text-lg font-semibold mb-2">Résumé Financier</h2>
+          <p>Total Revenus : {totalRevenus} GNF</p>
+          <p>Total Dépenses : {totalDépenses} GNF</p>
+          <p>Bénéfice Net : {beneficeNet} GNF</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
